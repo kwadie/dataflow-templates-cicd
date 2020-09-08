@@ -13,9 +13,12 @@
 # limitations under the License.
 steps:
   - name: gcr.io/cloud-builders/git
-    args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$REPO_NAME']
+    args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$_REPO_NAME']
     id: 'check-out-source-code'
   - name: gcr.io/cloud-builders/gcloud
-    dir: '$REPO_NAME/'
-    args: [ 'builds', 'submit', '--project=', '$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$TARGET_GCR_IMAGE']
+    dir: '$_REPO_NAME/'
+    args: [ 'builds', 'submit', '--project=', '$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE']
     id: 'build-container-image'
+
+
+
