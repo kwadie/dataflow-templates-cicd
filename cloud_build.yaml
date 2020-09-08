@@ -17,9 +17,8 @@ steps:
     id: 'clone-source-code'
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: 'gcloud'
-    project: '$PROJECT_ID'
     dir: '$_REPO_NAME/'
-    args: [ 'builds', 'submit', '--project=', '$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE']
+    args: [ 'builds', 'submit', '--project=$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE']
     id: 'build-dataflow-template-container'
 
 
