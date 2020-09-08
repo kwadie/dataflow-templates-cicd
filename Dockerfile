@@ -14,7 +14,7 @@
 # the License.
 #
 
-FROM gcr.io/dataflow-templates-base/python2-template-launcher-base
+FROM gcr.io/dataflow-templates-base/python3-template-launcher-base
 
 RUN mkdir -p /template/wordcount
 
