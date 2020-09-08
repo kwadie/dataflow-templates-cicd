@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 steps:
-  - name: gcr.io/cloud-builders/git
-    args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$_REPO_NAME']
-    id: 'check-out-source-code'
-  - name: gcr.io/cloud-builders/gcloud
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [ 'gcloud', 'source', 'repos', 'clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$_REPO_NAME' ]
+    id: 'clone-source-code'
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: 'gcloud'
     dir: '$_REPO_NAME/'
     args: [ 'builds', 'submit', '--project=', '$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE']
     id: 'build-container-image'
