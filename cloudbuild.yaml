@@ -13,13 +13,18 @@
 # limitations under the License.
 steps:
   - name: gcr.io/cloud-builders/git
-    args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$_REPO_NAME']
     id: 'clone-source-code'
+    args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$_REPO_NAME']
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: 'build-dataflow-template-container'
     entrypoint: 'gcloud'
     dir: '$_REPO_NAME/'
     args: [ 'builds', 'submit', '--project=$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE']
-    id: 'build-dataflow-template-container'
-
-
-
+  #TODO: create spec file out of a template
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'create-template-spec'
+    entrypoint: 'bash'
+    args: ['-c', 'echo "{"docker_template_spec": {"docker_image": "gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE"}}" > docker_template_spec.json']
+  - name: gcr.io/cloud-builders/gsutil
+    id: 'copy-template-spec-to-gcs'
+    args: ['cp', 'docker_template_spec.json', '${_TEMPLATE_GCS_LOCATION}']

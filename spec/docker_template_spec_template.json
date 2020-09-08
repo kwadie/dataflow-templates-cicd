@@ -1,5 +1,0 @@
-{
-  "docker_template_spec": {
-    "docker_image": "gcr.io/#PROJECT/#TARGET_GCR_IMAGE"
-  }
-}
