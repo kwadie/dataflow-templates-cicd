@@ -14,7 +14,7 @@
 steps:
   - name: gcr.io/cloud-builders/git
     id: 'clone-source-code'
-    args: ['clone', '$_REPO_URL']
+    args: ['clone', '$_REPO_CLONE_URL']
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     id: 'build-dataflow-template-container'
     entrypoint: 'gcloud'
