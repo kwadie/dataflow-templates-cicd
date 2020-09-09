@@ -14,11 +14,11 @@
 steps:
   - name: gcr.io/cloud-builders/git
     id: 'clone-source-code'
-    args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$_REPO_NAME']
+    args: ['clone', '$_REPO_URL']
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     id: 'build-dataflow-template-container'
     entrypoint: 'gcloud'
-    dir: '$_REPO_NAME/'
+    dir: '$_REPO_DIR/'
     args: [ 'builds', 'submit', '--project=$PROJECT_ID', '--tag', 'gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE']
   #TODO: create spec file out of a template
   - name: 'gcr.io/cloud-builders/gcloud'
