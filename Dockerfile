@@ -14,7 +14,7 @@
 # the License.
 #
 
-FROM gcr.io/dataflow-templates-base/python3-template-launcher-base
+FROM gcr.io/dataflow-templates-base/python2-template-launcher-base
 
 RUN mkdir -p /template/wordcount
 
@@ -24,4 +24,4 @@ COPY spec/python_command_spec.json /template/wordcount
 
 ENV DATAFLOW_PYTHON_COMMAND_SPEC /template/wordcount/python_command_spec.json
 
-RUN pip install avro==1.8.2 pyarrow==0.11.1 apache-beam[gcp]==2.16.0
+RUN pip install avro==1.8.2 pyarrow==0.11.1 apache-beam[gcp]==2.23.0
