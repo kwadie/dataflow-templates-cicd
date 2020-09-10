@@ -24,7 +24,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'create-template-spec'
     entrypoint: 'bash'
-    args: ['-c', 'echo "{"docker_template_spec": {"docker_image": "gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE"}}" > docker_template_spec.json']
+    args: ['-c', 'echo "{\"docker_template_spec\": {\"docker_image\": \"gcr.io/$PROJECT_ID/$_TARGET_GCR_IMAGE\"}}" > docker_template_spec.json']
   - name: gcr.io/cloud-builders/gsutil
     id: 'copy-template-spec-to-gcs'
     args: ['cp', 'docker_template_spec.json', '${_TEMPLATE_GCS_LOCATION}']
