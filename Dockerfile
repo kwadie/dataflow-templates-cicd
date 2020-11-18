@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2019 Google Inc.
+# Copyright (C) 2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -20,7 +20,7 @@ RUN mkdir -p /template/wordcount
 
 COPY wordcount.py /template/wordcount
 
-COPY spec/python_command_spec.json /template/wordcount
+COPY python_command_spec.json /template/wordcount
 
 ENV DATAFLOW_PYTHON_COMMAND_SPEC /template/wordcount/python_command_spec.json
 
