@@ -1,0 +1,26 @@
+{
+  "name": "wordcount",
+  "description": "wordcount example via Python Flex template",
+  "parameters": [
+    {
+      "name": "input",
+      "label": "input path",
+      "helpText": "Input path."
+    },
+    {
+      "name": "output",
+      "label": "output path",
+      "helpText": "Output path."
+    },
+    {
+      "name": "format",
+      "label": "format",
+      "helpText": "Output format (text|parquet|avro)"
+    },
+    {
+      "name": "setup_file",
+      "label": "setup_file",
+      "helpText": "Path to Python setup.py in the docker image."
+    }
+  ]
+}

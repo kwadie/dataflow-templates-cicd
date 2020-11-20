@@ -19,7 +19,6 @@ import argparse
 import json
 import logging
 import re
-
 import apache_beam as beam
 from apache_beam.io import ReadFromText
 from apache_beam.io import WriteToText
@@ -29,12 +28,11 @@ from apache_beam.metrics import Metrics
 from apache_beam.metrics.metric import MetricsFilter
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
-
 import avro.schema
 from past.builtins import unicode
 import pyarrow
 
-FORMATS = {'text', 'parquet', 'avro'}
+
 HEADER = ['word', 'count']
 AVRO_SCHEMA = {
     'namespace':
@@ -88,29 +86,11 @@ class WordExtractingDoFn(beam.DoFn):
         return words
 
 
-def run(argv=None):
-    """Main entry point; defines and runs the wordcount pipeline."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--input',
-        dest='input',
-        default='gs://dataflow-samples/shakespeare/kinglear.txt',
-        help='Input file to process.')
-    parser.add_argument('--output',
-                        dest='output',
-                        required=True,
-                        help='Output file to write results to.')
-    parser.add_argument('--format',
-                        dest='format',
-                        default='text',
-                        help='Supported output file formats: %s.' % FORMATS)
-    known_args, pipeline_args = parser.parse_known_args(argv)
-
-    if known_args.format not in FORMATS:
-        raise ValueError('--format should be one of: %s' % FORMATS)
-
+def run(known_args, pipeline_args):
     # We use the save_main_session option because one or more DoFn's in this
     # workflow rely on global context (e.g., a module imported at module level).
+    logging.getLogger().setLevel(logging.INFO)
+
     pipeline_options = PipelineOptions(pipeline_args)
     pipeline_options.view_as(SetupOptions).save_main_session = True
     p = beam.Pipeline(options=pipeline_options)
@@ -185,8 +165,3 @@ def run(argv=None):
             word_lengths_dist = query_result['distributions'][0]
             logging.info('average word length: %d',
                          word_lengths_dist.result.mean)
-
-
-if __name__ == '__main__':
-    logging.getLogger().setLevel(logging.INFO)
-    run()

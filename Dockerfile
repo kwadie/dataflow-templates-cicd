@@ -12,16 +12,18 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations under
 # the License.
-#
 
 FROM gcr.io/dataflow-templates-base/python3-template-launcher-base
 
-RUN mkdir -p /template/wordcount
+RUN mkdir -p /dataflow/template
+WORKDIR /dataflow/template
 
-COPY wordcount.py /template/wordcount
+COPY wordcount/pipeline /dataflow/template/pipeline
+COPY wordcount/setup.py /dataflow/template/setup.py
+COPY wordcount/main.py /dataflow/template/main.py
 
-COPY python_command_spec.json /template/wordcount
+RUN pip install avro-python3 pyarrow==0.11.1 apache-beam[gcp]==2.24.0
 
-ENV DATAFLOW_PYTHON_COMMAND_SPEC /template/wordcount/python_command_spec.json
-
-RUN pip install avro-python3==1.10.0 pyarrow==0.12.1 apache-beam[gcp]==2.23.0
+# Entry point for the Dataflow job.
+# By setting this variable, no need for setting DATAFLOW_PYTHON_COMMAND_SPEC=python_command_spec.json.
+ENV FLEX_TEMPLATE_PYTHON_PY_FILE="/dataflow/template/main.py"

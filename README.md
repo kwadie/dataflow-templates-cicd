@@ -2,18 +2,19 @@
 
 This is a proof-of-concept for continuously deploying a Dataflow job using [Flex Template](https://cloud.google.com/dataflow/docs/guides/templates/overview#flex-templated-dataflow-jobs) and Cloud Build.
 
-It extends the work in [DataflowTemplates/flex-wordcount-python](https://github.com/GoogleCloudPlatform/DataflowTemplates/tree/master/v2/flex-wordcount-python) by adding the CICD pipeline and usage.
+It extends the work in [DataflowTemplates/flex-wordcount-python](https://github.com/GoogleCloudPlatform/DataflowTemplates/tree/master/v2/flex-wordcount-python) by: 
+* Adding the CICD pipeline and usage.
+* Demonstrating how to template a Python pipeline with multiple file dependencies.
 
 
 ## Overview
-The Wordcount pipeline demonstrates how to use the new Flex Templates
-feature in Dataflow to create a template out of practically any Dataflow pipeline. This pipeline
+The Wordcount pipeline demonstrates how to use Flex Templates in Dataflow to create a template out of practically any Dataflow pipeline. This pipeline
 does not use any [ValueProvider](https://github.com/apache/beam/blob/master/sdks/python/apache_beam/options/value_provider.py) to accept user inputs and is built like any other non-templated
 Dataflow pipeline. This pipeline also allows the user to change the job
 graph depending on the value provided for an option at runtime
 (*--format=text|avro|parquet*)
 
-We make the pipeline ready for reuse by "packaging" the pipeline artifacts (python file + [command specs](python_command_spec.json))
+We make the pipeline ready for reuse by "packaging" the pipeline artifacts
 in a Docker container. In order to simplify the process of packaging the pipeline into a container we
 utilize [Google Cloud Build](https://cloud.google.com/cloud-build/).
 
@@ -29,7 +30,10 @@ We will utilize Google Cloud Builds ability to build a container using a Dockerf
 In addition, we will use a CICD pipeline on Cloud Build to update the flex template automatically.
 
 ## Dataflow Pipeline
-[WordCount Example](wordcount.py) - The Wordcount pipeline is a batch pipeline which performs a wordcount on an input text file (via --input flag) and writes the word count to GCS. The output format is determined by the value of the --format flag which can be set to either text, avro or parquet.
+* [wordcount.py](wordcount/pipeline/wordcount.py) - The Wordcount pipeline is a batch pipeline which performs a wordcount on an input text file (via --input flag) and writes the word count to GCS. The output format is determined by the value of the --format flag which can be set to either text, avro or parquet.
+* [main.py](wordcount/main.py) - The entry point of the pipeline to parse command arguments and call ```wordcount.run(params)```
+* [setup.py](wordcount/setup.py) - To package the pipeline and distribute it to the workers. Without this file, main.py won't be able to import wordcount.py at runtime. [[source]](https://beam.apache.org/documentation/sdks/python-pipeline-dependencies/#multiple-file-dependencies) 
+
 
 ## Getting started
 To run the CICD pipeline end-to-end:
@@ -44,8 +48,7 @@ To run the CICD pipeline end-to-end:
 ### Steps
 The CICD pipeline is defined in [cloudbuild.yaml](cloudbuild.yaml) to be executed by Cloud Build. It follows the following steps:
 1. Build and register a container image via Cloud Build as defined in the [Dockerfile](Dockerfile). The container packages the Dataflow pipeline and its dependencies and acts as the Dataflow Flex Template
-2. Create a spec file for the created Flex Template with the container image URL
-3. Copy the spec file to GCS
+2. Build the Dataflow template by creating a spec.json file on GCS including the container image ID and the pipeline metadata based on [metadata.json](wordcount/spec/metadata.json). The template could be run later on by pointing to this spec.json file 
 
 ### Substitution variables
 Cloud Build provides default variables such as $PROJECT_ID that could be used in the build YAML file. User defined variables could also be used in the form of $_USER_VARIABLE.
@@ -58,11 +61,23 @@ These variables must be set during manual build execution or via a build trigger
 
 ### Manual builds
 
-In the repo root directory, run the following command:
+In the repo root directory, set the following variables:
 ```
-gcloud builds submit --config=cloudbuild.yaml --substitutions=_TARGET_GCR_IMAGE="word_count_flex_template_python",_TEMPLATE_GCS_LOCATION="gs://bucket/dir/"
+TEMPLATE_GCS_LOCATION=gs://bucket/dir/spec.json
+TARGET_GCR_IMAGE=word_count_flex_template_python
+REGION=<GCP REGION>
+INPUT=gs://dataflow-samples/shakespeare/kinglear.txt
+OUTPUT=gs://bucket/dir/
+FORMAT=text
+SETUP_FILE=/dataflow/template/setup.py
 ```
-PS: make sure that your latest code changes are pushed to the repo since the build will clone it from there and won't use the local version
+
+Then run the following command:
+
+```
+gcloud builds submit --config=cloudbuild.yaml --substitutions=_TARGET_GCR_IMAGE=$TARGET_GCR_IMAGE,_TEMPLATE_GCS_LOCATION=$TEMPLATE_GCS_LOCATION
+```
+
 
 ### Triggering builds automatically
 To trigger a build on certain actions (e.g. commits to master)
@@ -73,34 +88,15 @@ To trigger a build on certain actions (e.g. commits to master)
 
 
 ## Running Flex Templates
-After deploying the template, one can invoke it using this API call
+After deploying the template, one can run it using this command: (after setting the required variables as in [Manual Builds](#manual-builds))
 ```
-API_ROOT_URL="https://dataflow.googleapis.com"
-TEMPLATES_LAUNCH_API="${API_ROOT_URL}/v1b3/projects/${PROJECT}/templates:launch"
-JOB_NAME="wordcount-flex-template-`date +%Y%m%d-%H%M%S`"
-INPUT_FILE="gs://path/to/input/file"
-OUTPUT_FILE="gs://path/to/output/dir"
-FORMAT="text"
-time curl -X POST -H "Content-Type: application/json"     \
-     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-     "${TEMPLATES_LAUNCH_API}"`
-     `"?validateOnly=false"`
-     `"&dynamicTemplate.gcsPath=gs://path/to/image/spec"`
-     `"&dynamicTemplate.stagingLocation=gs://path/to/stagingLocation" \
-     -d '
-      {
-       "jobName":"'$JOB_NAME'",
-       "parameters": {
-                   "input":"'$INPUT_FILE'",
-                   "output":"'$OUTPUT_FILE'",
-                   "format":"'$FORMAT'",
-        }
-       }
-      '
+ gcloud dataflow flex-template run "wordcount-flex-template-`date +%Y%m%d-%H%M%S`" \
+ --template-file-gcs-location $TEMPLATE_GCS_LOCATION \
+ --region $REGION \
+ --parameters input=$INPUT \
+ --parameters output=$OUTPUT \
+ --parameters format=$FORMAT \
+ --parameters setup_file=$SETUP_FILE
 
 ```
 PS: If needed, this manual step could be added in the [cloudbuild.yaml](cloudbuild.yaml) to run the latest version of the pipeline as part of the CICD
-
-## Assumptions and limitations
-1. The "clone-source-code" step in [cloudbuild.yaml](cloudbuild.yaml) is configured for a public Github repo. Private repos and/or Cloud Source Repos would require setting up authorization to access them.
-2. In complex deployments on GCP, IAM would need to be configured to grant access from/to services such as GCS, CSR, Dataflow and Cloud Build.  
