@@ -97,6 +97,7 @@ After deploying the template, one can run it using this command: (after setting 
  --parameters output=$OUTPUT \
  --parameters format=$FORMAT \
  --parameters setup_file=$SETUP_FILE
-
 ```
-PS: If needed, this manual step could be added in the [cloudbuild.yaml](cloudbuild.yaml) to run the latest version of the pipeline as part of the CICD
+Note that the parameter setup_file must be included in [metadata.json](wordcount/spec/metadata.json) and passed to the pipeline. It enables working with multiple Python modules/files and it's set to the path of 
+[setup.py](wordcount/setup.py) inside the docker container. 
+
