@@ -83,7 +83,7 @@ gcloud builds submit --config=cloudbuild.yaml --substitutions=_TARGET_GCR_IMAGE=
 To trigger a build on certain actions (e.g. commits to master)
 1. Go to Cloud Build > Triggers > Create Trigger. If you're using Github, choose the "Connect Repository" option.     
 2. Configure the trigger
-3. Point the trigger to the cloudbuild.yaml file in the repository
+3. Point the trigger to the [cloudbuild.yaml](cloudbuild.yaml) file in the repository
 4. Add the substitution variables as explained in the [Substitution variables](#substitution-variables) section.
 
 

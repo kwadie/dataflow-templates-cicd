@@ -15,6 +15,7 @@
 #
 """A word-counting workflow using Flex Templates."""
 
+import sys
 import argparse
 import logging
 from pipeline import wordcount
@@ -38,7 +39,8 @@ if __name__ == '__main__':
                         dest='format',
                         default='text',
                         help='Supported output file formats: %s.' % FORMATS)
-    known_args, pipeline_args = parser.parse_known_args(argv)
+
+    known_args, pipeline_args = parser.parse_known_args(sys.argv)
 
     if known_args.format not in FORMATS:
         raise ValueError('--format should be one of: %s' % FORMATS)
